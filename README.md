@@ -10,43 +10,6 @@
 |------------------|------|
 | `backend/`       | `POST /api/v1/search/zipcode` などの HTTP API（内部で既定 **`POST /api/v2/j/token`** と **`GET /api/v2/searchcode/{code}`**。`JAPANPOST_TOKEN_PATH` / `JAPANPOST_SEARCH_CODE_PATH` で変更可） |
 | `frontend/`      | **Next.js 16**（安定版。`package.json` の `next` 参照）で郵便番号・`page` / `limit` / `choikitype` / `searchtype` を指定して検索する UI |
-| `.devcontainer/` | VS Code / Cursor Dev Container 用 |
-
-## Dev Container で動かす
-
-1. リポジトリをクローンし、ルートに **`.env`** を用意する（`cp .env.example .env` のうえ、日本郵便のクレデンシャル等を記入）。
-2. **Cursor / VS Code** でフォルダを開き、コマンドパレットから **「Dev Containers: Reopen in Container」**（または **「コンテナーで再度開く」**）を実行する。
-3. **初回のみ** `.devcontainer/Dockerfile` のビルドで Go **1.26.2** と **Node 22** を入れるため、数分かかることがあります（Features は使わず、ハングしやすい自動インストールを避けています）。ウィンドウが開いたあと、`postCreateCommand` で **`frontend` の `npm install` のみ**実行します（`go mod download` は不要なため省略）。ポート **3000** と **8080** は自動転送されます。
-4. ターミナルを **2 本**開き、次を実行する。
-
-   **バックエンド**
-
-   ```bash
-   cd /workspaces/zipcode-da-monorepo/backend
-   set -a && source ../.env && set +a
-   go run ./cmd/server
-   ```
-
-   **フロント**
-
-   ```bash
-   cd /workspaces/zipcode-da-monorepo/frontend
-   export NEXT_PUBLIC_API_BASE_URL="${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8080}"
-   npm run dev
-   ```
-
-5. ホストのブラウザで **http://localhost:3000** を開く（転送されたポートにアクセス）。
-
-コンテナ内の `localhost:8080` は、ポート転送によりホスト側のブラウザからも同じ URL で届く想定です。`.env` に `NEXT_PUBLIC_API_BASE_URL=http://localhost:8080` を書いておくと安全です。
-
-**補足:** アプリ全体を **ルートの `docker compose up`** で動かす場合は、ホスト OS のターミナルで実行する（現在の Dev Container 定義には Docker ソケットのマウントは含めていません）。
-
-### Dev Container が「開いています」のまま終わらないとき
-
-- **初回ビルド**は go.dev / NodeSource の取得があり、環境によっては **5〜15 分**かかることがあります。Docker Desktop の **Images / Builds** で進捗を確認してください。
-- Cursor / VS Code の **「Dev Containers: Show Container Log」** で、ビルドや `postCreateCommand` がどこで止まっているかを確認する。
-- いったん **「Dev Containers: Rebuild Container Without Cache」** でやり直す（プロキシや一時的な取得失敗のとき有効なことがある）。
-- それでもダメな場合は、コマンドパレットの **「Dev Containers: Reopen Folder Locally」** でローカルに戻り、ホストから `docker compose build` を実行してエラーログを直接確認する。
 
 ## 前提
 
