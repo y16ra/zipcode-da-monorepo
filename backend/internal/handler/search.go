@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -22,9 +23,14 @@ type SearchZipcodeRequest struct {
 	ECUID       string `json:"ec_uid"`
 }
 
+// ZipcodeSearchBackend performs upstream zipcode lookup (implemented by *client.JapanPost).
+type ZipcodeSearchBackend interface {
+	SearchCode(ctx context.Context, zipcode string, opts client.SearchOpts) ([]byte, int, error)
+}
+
 // SearchZipcodeHandler proxies zipcode search to Japan Post searchcode API.
 type SearchZipcodeHandler struct {
-	JP           *client.JapanPost
+	JP           ZipcodeSearchBackend
 	DefaultECUID string
 }
 
