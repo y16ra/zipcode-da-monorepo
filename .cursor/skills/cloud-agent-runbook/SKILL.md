@@ -70,7 +70,7 @@ Run from `frontend/`.
 - Install dependencies: `npm install`
 - Development server: set `NEXT_PUBLIC_API_BASE_URL` to the backend URL, then run `npm run dev`.
 - Production build: `npm run build`
-- Lint, when supported by the installed Next.js version: `npm run lint`
+- Lint caveat: `npm run lint` currently calls `next lint`; with Next.js 16 this can fail with `Invalid project directory provided, no such directory: .../lint`. Prefer `npm run build` for TypeScript/build validation until the lint script is updated.
 
 Concrete UI testing workflow:
 
