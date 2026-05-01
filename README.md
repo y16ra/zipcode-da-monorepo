@@ -14,7 +14,7 @@
 ## 前提
 
 - **Go:** `backend/go.mod` は **Go 1.26**（`toolchain go1.26.2`）を想定。古い `go` でも `GOTOOLCHAIN=auto` ならツールチェーン取得で揃います。Docker ビルドは `golang:1.26-alpine`。
-- [郵便番号・デジタルアドレス for Biz](https://www.post.japanpost.jp/) で発行した **client_id** と **secret_key**
+- [郵便番号・デジタルアドレス for Biz](https://guide-biz.da.pf.japanpost.jp/) で発行した **client_id** と **secret_key**
 - API ベース URL（本番例: `https://api.da.pf.japanpost.jp`、スタブ等は契約・ドキュメントに従って変更）
 
 ## セットアップ
