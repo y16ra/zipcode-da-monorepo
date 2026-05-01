@@ -98,6 +98,8 @@ npm run dev
 
 ## 日本郵便 API（参考）
 
+**データソースについて:** for Biz で提供される郵便番号検索結果のデータは、[日本郵便の郵便番号データダウンロード](https://www.post.japanpost.jp/zipcode/dl/utf-zip.html) で公開している **住所の郵便番号（1レコード1行、UTF-8 形式・CSV を ZIP で配布）** を根拠としたものです。本モノレポはその API をプロキシするのみで、この CSV はリポジトリに同梱しません。
+
 実装は公開ドキュメントに基づく。
 
 - トークン: `POST {base}{JAPANPOST_TOKEN_PATH}`（既定 **`/api/v2/j/token`**。リファレンスのリクエストサンプルと同じ）。**OAuth 2.0 `client_credentials`** の JSON 例: `{"grant_type":"client_credentials","client_id":"…","secret_key":"…"}`。必須ヘッダー **`x-forwarded-for`**（送信元 IP）と **`Content-Type: application/json`**、および **`User-Agent`** を付与し、成功時は **JWT** の `token` が返ります。まだ **`/api/v1/j/token`** の環境は **`JAPANPOST_TOKEN_PATH=/api/v1/j/token`** を指定。本文に `scope` が必要な場合は **`JAPANPOST_TOKEN_SCOPE`**（例: `J1`）を設定。
