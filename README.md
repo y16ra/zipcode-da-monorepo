@@ -38,7 +38,45 @@
    - バックエンド: <http://localhost:8080>  
    - ヘルスチェック: `GET http://localhost:8080/healthz`
 
+   ポートは環境変数でカスタマイズ可能です。
+
+   | 変数 | 既定 | 説明 |
+   |------|------|------|
+   | `BACKEND_PORT` | `8080` | ホスト側のバックエンドポート |
+   | `FRONTEND_PORT` | `3000` | ホスト側のフロントエンドポート |
+
+   例: ポートを変えて起動する場合
+
+   ```bash
+   BACKEND_PORT=18080 FRONTEND_PORT=13000 docker compose up --build
+   ```
+
 ブラウザから API を叩くため、バックエンドは `CORS_ALLOW_ORIGIN`（未設定時は `*`）で CORS を許可しています。
+
+## 環境変数
+
+### 必須
+
+| 変数 | 説明 |
+|------|------|
+| `JAPANPOST_CLIENT_ID` | 日本郵便 for Biz のクライアント ID |
+| `JAPANPOST_SECRET_KEY` | シークレットキー |
+
+### オプション
+
+| 変数 | 既定値 | 説明 |
+|------|--------|------|
+| `JAPANPOST_API_BASE_URL` | `https://api.da.pf.japanpost.jp` | 日本郵便 API のベース URL（スタブ環境等で変更） |
+| `JAPANPOST_TOKEN_PATH` | `/api/v2/j/token` | トークン取得パス（v1 環境は `/api/v1/j/token`） |
+| `JAPANPOST_SEARCH_CODE_PATH` | `/api/v2/searchcode` | 検索パス（v1 環境は `/api/v1/searchcode`） |
+| `JAPANPOST_TOKEN_SCOPE` | _(なし)_ | トークンリクエストの `scope`（例: `J1`。契約により必要な場合に設定） |
+| `JAPANPOST_X_FORWARDED_FOR` | `127.0.0.1` | トークン取得・検索リクエストに付与する `X-Forwarded-For` ヘッダー値 |
+| `JAPANPOST_EC_UID` | _(なし)_ | 検索クエリに付与する `ec_uid`（リクエスト JSON の `ec_uid` で上書き可） |
+| `HTTP_ADDR` | `:8080` | バックエンドサーバーのリッスンアドレス |
+| `CORS_ALLOW_ORIGIN` | `*` | バックエンドの CORS 許可オリジン |
+| `NEXT_PUBLIC_API_BASE_URL` | `http://localhost:8080` | フロントエンドがアクセスするバックエンド URL |
+| `BACKEND_PORT` | `8080` | Docker Compose でのホスト側バックエンドポート |
+| `FRONTEND_PORT` | `3000` | Docker Compose でのホスト側フロントエンドポート |
 
 ## ローカル開発（Docker なし）
 
@@ -54,6 +92,15 @@ go run ./cmd/server
 ```
 
 ホットリロード: [Air](https://github.com/air-verse/air) を入れたうえで `air`（設定は `backend/.air.toml`）。
+
+テスト・静的解析（外部 API への接続は不要、すべてモックで実行）:
+
+```bash
+cd backend
+go test ./...        # ユニットテスト
+go vet ./...         # 静的解析
+go build ./...       # ビルド確認
+```
 
 ### Frontend
 
