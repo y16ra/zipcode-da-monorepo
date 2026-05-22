@@ -27,11 +27,12 @@ func main() {
 	addr := cfg.HTTPAddr
 	log.Printf("listening on %s", addr)
 	srv := &http.Server{
-		Addr:         addr,
-		Handler:      mux,
-		ReadTimeout:  15 * time.Second,
-		WriteTimeout: 15 * time.Second,
-		IdleTimeout:  60 * time.Second,
+		Addr:              addr,
+		Handler:           mux,
+		ReadTimeout:       15 * time.Second,
+		ReadHeaderTimeout: 10 * time.Second,
+		WriteTimeout:      15 * time.Second,
+		IdleTimeout:       60 * time.Second,
 	}
 	if err := srv.ListenAndServe(); err != nil {
 		log.Fatalf("server: %v", err)
