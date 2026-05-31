@@ -137,3 +137,18 @@ button:disabled {
   border: 1px solid var(--border);
   border-radius: 8px;
 }
+
+input[aria-invalid="true"] {
+  border-color: var(--error);
+  outline-color: var(--error);
+}
+
+.field-error {
+  font-size: 0.8rem;
+  color: var(--error);
+}
+
+.field-hint {
+  font-size: 0.8rem;
+  color: var(--accent);
+}
