@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const apiBase =
   process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ||
@@ -15,8 +15,27 @@ type SearchBody = {
   ec_uid?: string;
 };
 
+const DEBOUNCE_MS = 600;
+
+function formatZipcode(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 7);
+  if (digits.length > 3) {
+    return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  }
+  return digits;
+}
+
+function validateZipcode(value: string): string | null {
+  const digits = value.replace(/\D/g, "");
+  if (digits.length === 0) return "郵便番号を入力してください";
+  if (digits.length < 3) return "3桁以上入力してください";
+  if (digits.length > 7) return "7桁以内で入力してください";
+  return null;
+}
+
 export default function HomePage() {
-  const [zipcode, setZipcode] = useState("1000001");
+  const [zipcode, setZipcode] = useState("");
+  const [zipcodeError, setZipcodeError] = useState<string | null>(null);
   const [page, setPage] = useState("1");
   const [limit, setLimit] = useState("100");
   const [choikitype, setChoikitype] = useState("1");
@@ -25,15 +44,19 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resultJson, setResultJson] = useState<string | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const onSubmit = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
+  const search = useCallback(
+    async (code: string) => {
+      const validationError = validateZipcode(code);
+      if (validationError) return;
+
       setError(null);
       setResultJson(null);
       setLoading(true);
       try {
-        const body: SearchBody = { zipcode };
+        const normalizedCode = code.replace(/\D/g, "");
+        const body: SearchBody = { zipcode: normalizedCode };
         const p = parseInt(page, 10);
         const l = parseInt(limit, 10);
         const c = parseInt(choikitype, 10);
@@ -65,8 +88,49 @@ export default function HomePage() {
         setLoading(false);
       }
     },
-    [zipcode, page, limit, choikitype, searchtype, ecUid],
+    [page, limit, choikitype, searchtype, ecUid],
   );
+
+  const onZipcodeChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const formatted = formatZipcode(e.target.value);
+      setZipcode(formatted);
+
+      const err = validateZipcode(formatted);
+      setZipcodeError(err);
+
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+
+      const digits = formatted.replace(/\D/g, "");
+      if (!err && digits.length === 7) {
+        debounceRef.current = setTimeout(() => {
+          search(formatted);
+        }, DEBOUNCE_MS);
+      }
+    },
+    [search],
+  );
+
+  const onSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      const err = validateZipcode(zipcode);
+      setZipcodeError(err);
+      if (err) return;
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      await search(zipcode);
+    },
+    [zipcode, search],
+  );
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
+  const digits = zipcode.replace(/\D/g, "");
+  const isComplete = digits.length === 7;
 
   return (
     <main>
@@ -81,11 +145,19 @@ export default function HomePage() {
           郵便番号（3〜7桁、ハイフン可）
           <input
             value={zipcode}
-            onChange={(e) => setZipcode(e.target.value)}
+            onChange={onZipcodeChange}
             inputMode="numeric"
             autoComplete="postal-code"
+            placeholder="例: 100-0001"
+            aria-invalid={zipcodeError !== null}
             required
           />
+          {zipcodeError && (
+            <span className="field-error">{zipcodeError}</span>
+          )}
+          {!zipcodeError && isComplete && (
+            <span className="field-hint">7桁入力完了 — 自動検索します</span>
+          )}
         </label>
         <div className="grid2">
           <label>
@@ -125,7 +197,7 @@ export default function HomePage() {
             placeholder="未指定ならサーバ環境変数 JAPANPOST_EC_UID を使用"
           />
         </label>
-        <button type="submit" disabled={loading}>
+        <button type="submit" disabled={loading || !!zipcodeError}>
           {loading ? "検索中…" : "検索"}
         </button>
       </form>
